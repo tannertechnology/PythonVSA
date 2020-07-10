@@ -21,12 +21,6 @@ Then PythonVSA would make a request similar to:
     GET /automation/agentprocs?$skip=30&$top=10&$orderby=Severity
 
 
-
-Create issues for:
-- NGINX support
-- 
-
-
 Implemented
 -------------
 Authentication
