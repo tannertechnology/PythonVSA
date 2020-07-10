@@ -113,18 +113,22 @@ if __name__ == "__main__":
     msg['From'] = smtp_emailfrom
     msg['To'] = smtp_emailto
     message = MIMEText('Please follow this link to authenticate your new integration: ' + urlforuser)
+    message1 = MIMEText('Reply to this message with the full URL that is returned to complete authentication.')
     msg.attach(message)
-    code = input("Paste code here: ")
+
+
+    smtp_server = smtplib.SMTP(smtp_server, smtp_port)
+    smtp_server.ehlo()
+    smtp_server.starttls()
+    smtp_server.ehlo()
+    smtp_server.login(smtp_username, smtp_password)
+    smtp_server.sendmail(smtp_emailfrom, smtp_emailto, msg.as_string())
+    smtp_server.close()
+
+    #code = input("Paste code here: ")
+    #TODO: Monitor mailbox for response here
     doInitialAuth(code)
 
-
-#    smtp_server = smtplib.SMTP(smtp_server, smtp_port)
-#    smtp_server.ehlo()
-   # smtp_server.starttls()
-  #  smtp_server.ehlo()
- #   smtp_server.login(smtp_username, smtp_password)
-#    smtp_server.sendmail(smtp_emailfrom, smtp_emailto, msg.as_string())
-#    smtp_server.close()
 
     server_class = HTTPServer
     handler_class = S
