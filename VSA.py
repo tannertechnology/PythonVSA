@@ -1,4 +1,4 @@
-import VSA_API
+import VSA_Auth
 import requests
 import datetime
 import configparser
