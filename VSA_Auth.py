@@ -8,6 +8,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import re
+from imaplib import IMAP4_SSL
+import email
 import VSA
 
 
@@ -35,6 +37,12 @@ try:
     smtp_server = config['Email']['smtp_server']
     smtp_port = int(config['Email']['smtp_port'])
     alerts_email = config['Email']['alerts_email']
+    imap_username = config['Email']['imap_username']
+    imap_password = config['Email']['imap_password']
+    imap_email = config['Email']['imap_email']
+    imap_server = config['Email']['imap_server']
+    imap_port = int(config['Email']['imap_port'])
+
 except(KeyError):
     print("A required variable is missing. RIPERONI. ")
     exit()
@@ -93,6 +101,17 @@ if __name__ == "__main__":
     smtp_server.login(smtp_username, smtp_password)
     smtp_server.sendmail(smtp_emailfrom, smtp_emailto, msg.as_string())
     smtp_server.close()
+
+    connection = IMAP4_SSL(imap_server, imap_port)
+    connection.login(imap_username, imap_password)
+    typ, data = connection.select('INBOX')
+    typ, data = connection.search(None, '(UNSEEN SUBJECT "%s")' % "VSAPY Authentication")
+    for num in data[0].split():
+        typ, data = connection.fetch(num, '(RFC822)')
+        msg = email.message_from_bytes(data[0][1])
+        typ, data = connection.store(num, '-FLAGS','\\Seen')
+        print(msg)
+        # Parse message here, if we don't find any emails with a code try again
 
     #code = input("Paste code here: ")
     #TODO: Monitor mailbox for response here
