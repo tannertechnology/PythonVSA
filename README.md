@@ -4,7 +4,10 @@ This is far from complete, give me a bit to finish it. If there are specific API
 Installation/First Run:
 
 Auth:
-You will have to auth with kaseya on first run. Make sure you have a domain or ip pointing at the machine running this library and have opened a port specified in VSA_API.ini as listen_port. Set the redirect_uri to http://yourip:port/ and set the same in Kaseya
+
+You will have to auth with kaseya on first run. To do this copy sample_config.ini to config.ini and fill it. 
+
+When you launch VSA_Auth.py it will email a link to you, click the link and authorize access. It will redirect you to localhost, copy the entire resulting URL into an email reply and reply to the initial email. Do not include a greeting or signature. 
 
 
 Notes:
