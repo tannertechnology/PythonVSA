@@ -18,7 +18,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 # Init config
 config = configparser.ConfigParser()
-config.read('VSA_API.ini')
+config.read('config.ini')
 try:
     client_id = config['VSA']['client_id']
     client_secret = config['VSA']['client_secret']
@@ -68,7 +68,7 @@ def doInitialAuth(body):
     print(str(r.status_code))
     config['Auth'] = r.json()
     config['Auth']['refreshed_at'] = datetime.datetime.now().strftime("%Y%m%d%H%M")
-    with open('VSA_API.ini', 'w') as configfile:
+    with open('config.ini', 'w') as configfile:
         config.write(configfile)
     VSA.Auth.doRefresh(refreshtoken)
 

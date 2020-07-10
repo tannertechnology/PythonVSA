@@ -5,7 +5,7 @@ import configparser
 
 
 config = configparser.ConfigParser()
-config.read('VSA_API.ini')
+config.read('config.ini')
 vsa_uri = config['VSA']['vsa_uri']
 api_uri = vsa_uri + "/api/v1.0/"
 redirect_uri = config['Listener']['redirect_uri']
@@ -16,7 +16,7 @@ client_secret = config['VSA']['client_secret']
 class Auth:
     @classmethod
     def doRefresh(cls, refresh_token=config['Auth']['refresh_token']):
-        config.read('VSA_API.ini')
+        config.read('config.ini')
         refreshuri = vsa_uri + "/api/v1.0/token"
         print("Refreshing token...")
         r = requests.post(refreshuri, json={
@@ -27,21 +27,21 @@ class Auth:
                         "client_secret": client_secret})
         if(r.status_code == 400):
             # Email error here. 
-            print("Please delete the [Auth] section of VSA_API.ini and reauthenticate with kaseya.")
+            print("Please delete the [Auth] section of config.ini and reauthenticate with kaseya.")
             print(r.text)
             exit()
         else:
             config['Auth']['refreshed_at'] = datetime.datetime.now().strftime("%Y%m%d%H%M")
             config['Auth']['refresh_token'] = r.json()['refresh_token']
             config['Auth']['access_token'] = r.json()['access_token']
-            with open('VSA_API.ini', 'w') as configfile:
+            with open('config.ini', 'w') as configfile:
                 config.write(configfile)
             print(r.text)
             return r.json()['access_token']
 
     @classmethod
     def GetToken(cls):
-        config.read('VSA_API.ini')
+        config.read('config.ini')
         try:
             refresh_token = config['Auth']['refresh_token']
             refreshed_at = config['Auth']['refreshed_at']
