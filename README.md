@@ -1,3 +1,6 @@
+This is far from complete, give me a bit to finish it. If there are specific API Endpoints you want to access submit an issue and I should be able to implement in a day. 
+
+
 Installation/First Run:
 
 Auth:
