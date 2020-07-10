@@ -201,3 +201,36 @@ class Agents:
                                                                      "value": reason}])
         if(r.status_code == 200):
             return 0
+
+
+class ServiceDesk:
+    """
+    http://help-origin.kaseya.com/webhelp/EN/RESTAPI/9040000/#31752.htm
+    """
+    @classmethod
+    def GetTickets(cls, serviceDeskId, params=None):
+        """
+        Get Tickets based on Service Desk ID
+        Parameters
+        ----------
+        serviceDeskId : int
+            ID of service desk to search
+        params : string
+            Properly formatted string of filters/expressions (see README)
+        Returns
+        -------
+        dict : Tickets Found
+        """
+        if(params is None):
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/tickets"
+        else:
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/tickets?" + params
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Tickets retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetTickets.")
+            return r.json()
