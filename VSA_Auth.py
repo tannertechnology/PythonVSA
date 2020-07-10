@@ -71,41 +71,10 @@ def doInitialAuth(body):
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
     VSA.Auth.doRefresh(refreshtoken)
-
-
-class S(BaseHTTPRequestHandler):
-    def _set_headers(self):
-        self.send_response(200)
-        self.end_headers()
-
-    def _html(self, message):
-        # Blank response ( Aussie bandwidth is valuable! )
-        # TODO: Test removal of these content statements, or change to None
-        content = f""
-        return content.encode("utf8")
-
-    def do_GET(self):
-        print("Do_GET!")
-        self._set_headers()
-
-        #match = re.match(r"\/code\?(.*)", self.path)
-        #if(match):
-        print("Auth attempt!\n")
-        #QUERY_STRING = match.group(1)
-        # We have the query string here.
-        doInitialAuth(self.path)
-
-    def do_HEAD(self):
-        self._set_headers()
-
-    def do_POST(self):
-        self._set_headers()
-
     
 if __name__ == "__main__":
     print("Attempting initial auth")
-    print("Please visit this link and copy the ?code part of the URL that results after you log in.")
-    print("Ensure you include the code part (paste here ?code=xxxxxxxxxxxxxxxxxxx)\n")
+    print("Please visit this link and copy the entire resulting URL.")
     print(urlforuser)
 
     msg = MIMEMultipart('mixed')
@@ -127,21 +96,5 @@ if __name__ == "__main__":
 
     #code = input("Paste code here: ")
     #TODO: Monitor mailbox for response here
-    doInitialAuth(code)
-
-
-    server_class = HTTPServer
-    handler_class = S
-    port = int(config['Listener']['listen_port'])
-    addr = config['Listener']['listen_ip']
-    server_address = (addr, port)
-    httpd = server_class(server_address, handler_class)
-    print(f"Watching on {addr}:{port} for the auth response.\n")
-#    httpd.handle_request()
-
-    print("Request handled.")
-
-    #WaitForAuth()
-    #doRefresh()
+    #doInitialAuth(code)
     pass
-
