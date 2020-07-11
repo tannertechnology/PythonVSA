@@ -7,7 +7,10 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from time import sleep
 import re
+from imaplib import IMAP4_SSL
+import email
 import VSA
 
 
@@ -27,7 +30,6 @@ try:
     redirect_uri = config['Listener']['redirect_uri']
     listen_port = config['Listener']['listen_port']
 
-    #email_uri = config['Email'].getboolean('email_uri')
     smtp_username = config['Email']['smtp_username']
     smtp_password = config['Email']['smtp_password']
     smtp_emailfrom = config['Email']['smtp_emailfrom']
@@ -35,6 +37,13 @@ try:
     smtp_server = config['Email']['smtp_server']
     smtp_port = int(config['Email']['smtp_port'])
     alerts_email = config['Email']['alerts_email']
+    imap_username = config['Email']['imap_username']
+    imap_password = config['Email']['imap_password']
+    imap_email = config['Email']['imap_email']
+    imap_server = config['Email']['imap_server']
+    imap_port = int(config['Email']['imap_port'])
+    imap_refresh_interval = int(config['Email']['imap_refresh_interval'])
+
 except(KeyError):
     print("A required variable is missing. RIPERONI. ")
     exit()
@@ -44,11 +53,7 @@ authendpoint = vsa_uri + "/api/v1.0/authorize"
 urlforuser = vsa_uri + "/vsapres/web20/core/login.aspx?response_type=code&redirect_uri=" + redirect_uri + "&client_id=" + client_id
 
 
-def doInitialAuth(body):
-    print("ImportListener found someone authing!")
-    # Get first refresh token
-    #code = body.split("?code=")[1]
-    code = body
+def doInitialAuth(code):
     r = requests.post(authendpoint, json={
         "grant_type": "authorization_code",
         "code": code,
@@ -73,71 +78,76 @@ def doInitialAuth(body):
     VSA.Auth.doRefresh(refreshtoken)
 
 
-class S(BaseHTTPRequestHandler):
-    def _set_headers(self):
-        self.send_response(200)
-        self.end_headers()
-
-    def _html(self, message):
-        # Blank response ( Aussie bandwidth is valuable! )
-        # TODO: Test removal of these content statements, or change to None
-        content = f""
-        return content.encode("utf8")
-
-    def do_GET(self):
-        print("Do_GET!")
-        self._set_headers()
-
-        #match = re.match(r"\/code\?(.*)", self.path)
-        #if(match):
-        print("Auth attempt!\n")
-        #QUERY_STRING = match.group(1)
-        # We have the query string here.
-        doInitialAuth(self.path)
-
-    def do_HEAD(self):
-        self._set_headers()
-
-    def do_POST(self):
-        self._set_headers()
-
-    
 if __name__ == "__main__":
     print("Attempting initial auth")
-    print("Please visit this link and copy the ?code part of the URL that results after you log in.")
-    print("Ensure you include the code part (paste here ?code=xxxxxxxxxxxxxxxxxxx)\n")
+    print("Please visit this link and copy the entire resulting URL.")
     print(urlforuser)
 
     msg = MIMEMultipart('mixed')
-    msg['Subject'] = "VSAPY Authentication"
+    msg['Subject'] = "PythonVSA Authentication"
     msg['From'] = smtp_emailfrom
     msg['To'] = smtp_emailto
-    message = MIMEText('Please follow this link to authenticate your new integration: ' + urlforuser)
-    msg.attach(message)
-    code = input("Paste code here: ")
-    doInitialAuth(code)
+    text = f"""\
+        Please follow this link to authenticate your new integration:  {urlforuser}
 
+        Once you have authorized you will be redirected to a page that doesn't load/resolve. Copy the address from your address bar and reply to this email with it."""
+    msg.attach(MIMEText(text))
 
-#    smtp_server = smtplib.SMTP(smtp_server, smtp_port)
-#    smtp_server.ehlo()
-   # smtp_server.starttls()
-  #  smtp_server.ehlo()
- #   smtp_server.login(smtp_username, smtp_password)
-#    smtp_server.sendmail(smtp_emailfrom, smtp_emailto, msg.as_string())
-#    smtp_server.close()
+    smtp_server = smtplib.SMTP(smtp_server, smtp_port)
+    smtp_server.ehlo()
+    smtp_server.starttls()
+    smtp_server.ehlo()
+    smtp_server.login(smtp_username, smtp_password)
+    smtp_server.sendmail(smtp_emailfrom, smtp_emailto, msg.as_string())
+    smtp_server.close()
 
-    server_class = HTTPServer
-    handler_class = S
-    port = int(config['Listener']['listen_port'])
-    addr = config['Listener']['listen_ip']
-    server_address = (addr, port)
-    httpd = server_class(server_address, handler_class)
-    print(f"Watching on {addr}:{port} for the auth response.\n")
-#    httpd.handle_request()
+    print(f"Waiting {imap_refresh_interval} seconds to give a chance to respond.")
+    sleep(imap_refresh_interval)
 
-    print("Request handled.")
+    connection = IMAP4_SSL(imap_server, imap_port)
+    connection.login(imap_username, imap_password)
+    typ, data = connection.select('INBOX')
+    typ, data = connection.search(None, '(UNSEEN)')
 
-    #WaitForAuth()
-    #doRefresh()
-    pass
+    if(data == [b'']):
+        print(f"No emails found. Checking again every {imap_refresh_interval} seconds.")
+        i = 0
+        while i < 5:
+            i = i + 1
+            print(f"Checking {5 - i} more times.")
+            sleep(imap_refresh_interval)
+            typ, data = connection.search(None, '(UNSEEN)')
+            if(data[0] != b''):
+                break
 
+    for num in data[0].split():
+        typ, data = connection.fetch(num, '(RFC822)')
+        try:
+            msg = email.message_from_bytes(data[1][1])
+        except(IndexError):
+            msg = email.message_from_bytes(data[0][1])
+
+        typ, data = connection.store(num, '+FLAGS', '\\Seen')
+        print(msg._payload)
+        pattern = r'https://.*\/\?code(=[\w\d]{34})'
+        pattern1 = r'https://.*\/\?code(=[\w\d]{32})'
+        try:
+            match = re.match(pattern, msg._payload)
+            matchraw = re.match(pattern1, msg._payload)
+        except(TypeError):
+            print("It appears we have a message with a format we can't understand. Deleting.")
+            continue
+        if(match):
+            code = match.group(1)
+            code = code.replace("=3D", "")
+            connection.close()
+            connection.logout()
+            doInitialAuth(code)
+        elif(matchraw):
+            connection.close()
+            connection.logout()
+            doInitialAuth(code)
+        else:
+            print("Didn't find URL. Deleting.")
+            continue
+    print("All done.")
