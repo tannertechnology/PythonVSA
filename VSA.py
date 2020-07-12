@@ -201,7 +201,10 @@ class Agents:
                                                                      "value": reason}])
         if(r.status_code == 200):
             return 0
-
+        else:
+            print("Error in CloseAlarm.")
+            print(r.text)
+            return(r.json())
 
 class ServiceDesk:
     """
