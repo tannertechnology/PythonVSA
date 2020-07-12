@@ -234,3 +234,328 @@ class ServiceDesk:
         else:
             print("Failure in GetTickets.")
             return r.json()
+
+    @classmethod
+    def GetDesks(cls, params):
+        """
+        Get all Service Desks
+        Parameters
+        ----------
+        params : string
+            Properly formatted string of filters/expressions (see README)
+        Returns
+        -------
+        dict : Service Desks Found
+        """
+        if(params is None):
+            url = api_uri + "automation/servicedesks/"
+        else:
+            url = api_uri + "automation/servicedesks/" + params
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Service Desks retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetDesks.")
+            return r.json()
+
+    @classmethod
+    def GetTicketCategories(cls, serviceDeskId, params):
+        """
+        Get Ticket Categories based on Service Desk ID
+        Parameters
+        ----------
+        serviceDeskId : int
+            ID of service desk to search
+        params : string
+            Properly formatted string of filters/expressions (see README)
+        Returns
+        -------
+        dict : Ticket categories
+        """
+        if(params is None):
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/categories"
+        else:
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/categories?" + params
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Ticket categories retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetTicketCategories.")
+            return r.json()
+
+    @classmethod
+    def GetCustomFields(cls, serviceDeskId, params):
+        """
+        Get Custom Fields based on Service Desk ID
+        Parameters
+        ----------
+        serviceDeskId : int
+            ID of service desk to search
+        params : string
+            Properly formatted string of filters/expressions (see README)
+        Returns
+        -------
+        dict : Custom Fields
+        """
+        if(params is None):
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/customfields"
+        else:
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/customfields?" + params
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Custom Fields retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetCustomFields.")
+            return r.json()
+
+    @classmethod
+    def GetPriorities(cls, serviceDeskId, params):
+        """
+        Get Service Desk Priorities based on Service Desk ID
+        Parameters
+        ----------
+        serviceDeskId : int
+            ID of service desk to search
+        params : string
+            Properly formatted string of filters/expressions (see README)
+        Returns
+        -------
+        dict : Service Desk Priorities
+        """
+        if(params is None):
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/priorities"
+        else:
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/priorities?" + params
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Service Desk Priorities retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetPriorities.")
+            return r.json()
+
+    @classmethod
+    def GetTicketStatuses(cls, serviceDeskId, params):
+        """
+        Get Ticket Statuses based on Service Desk ID
+        Parameters
+        ----------
+        serviceDeskId : int
+            ID of service desk to search
+        params : string
+            Properly formatted string of filters/expressions (see README)
+        Returns
+        -------
+        dict : Ticket Statuses
+        """
+        if(params is None):
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/status"
+        else:
+            url = api_uri + "automation/servicedesks/" + str(serviceDeskId) + "/status?" + params
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Ticket Statuses retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetTicketStatuses.")
+            return r.json()
+
+    @classmethod
+    def GetTicket(cls, ticketId, params):
+        """
+        Get Ticket info based on Ticket ID
+        Parameters
+        ----------
+        ticketId : int
+            ID of ticket to retrieve
+        params : string
+            Properly formatted string of filters/expressions (see README)
+        Returns
+        -------
+        dict : Ticket Information
+        """
+        if(params is None):
+            url = api_uri + "automation/servicedesktickets/" + str(ticketId)
+        else:
+            url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "?" + params
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Ticket retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetTicket.")
+            return r.json()
+
+    @classmethod
+    def GetTicketCustomField(cls, ticketId, customFieldId):
+        """
+        Get Custom Field value
+        Parameters
+        ----------
+        ticketId : int
+            ID of ticket to retrieve
+        customFieldId : int
+            ID of custom field to get value of
+        Returns
+        -------
+        dict : Custom Field Value
+        """
+        url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/customfields/" + str(customFieldId)
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Custom Field Value retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetTicketCustomField.")
+            return r.json()
+
+    @classmethod
+    def UpdateCustomField(cls, ticketId, customFieldId, data):
+        """
+        Update Custom Field value
+        Parameters
+        ----------
+        ticketId : int
+            ID of ticket to retrieve
+        customFieldId : int
+            ID of custom field to update
+        data : string 
+            String encapsulated in escaped double quotes to fill custom field
+        Returns
+        -------
+        int : 0 if success | dict with more information on failure
+        """
+        url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/customfields/" + str(customFieldId)
+        r = requests.put(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"},
+                         data=data)
+        if(r.status_code == 200):
+            print("Custom Field Updated.")
+            return 0
+        else:
+            print("Failure in UpdateCustomField.")
+            return r.json()
+
+    @classmethod
+    def GetTicketNotes(cls, ticketId, params):
+        """
+        Get Ticket notes based on Ticket ID
+        Parameters
+        ----------
+        ticketId : int
+            ID of ticket to retrieve
+        params : string
+            Properly formatted string of filters/expressions (see README)
+        Returns
+        -------
+        dict : Ticket Notes
+        """
+        if(params is None):
+            url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/notes"
+        else:
+            url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/notes?" + params
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Ticket Notes retrieved sucessfully.")
+            return r.json()
+        else:
+            print("Failure in GetTicketNotes.")
+            return r.json()
+
+    @classmethod
+    def AddTicketNote(cls, ticketId, note, hidden="true", systemflag="true"):
+        """
+        Add note to ticket
+        Parameters
+        ----------
+        ticketId : int
+            ID of ticket to add note against
+        note : string
+            Note to add to ticket
+        Returns
+        -------
+        int : 0 if success | dict with more information on failure
+        """
+        url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/notes"
+        data = {"Hidden": hidden,
+                "SystemFlag": systemflag,
+                "Text": note}
+        r = requests.post(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"}, data=data)
+        if(r.status_code == 200):
+            print("Ticket Note Added successfully.")
+            return 0
+        else:
+            print("Failure in AddTicketNote.")
+            return r.json()
+
+    @classmethod
+    def UpdateTicketPriority(cls, ticketId, priorityId):
+        """
+        Update Ticket Priority
+        Parameters
+        ----------
+        ticketId : int
+            ID of ticket to change priority of
+        priorityId : int
+            Priority to set
+        Returns
+        -------
+        int : 0 if success | dict with more information on failure
+        """
+        url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/priority/" + str(priorityId)
+        r = requests.put(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Ticket Priority Updated successfully.")
+            return 0
+        else:
+            print("Failure in UpdateTicketPriority.")
+            return r.json()
+
+    @classmethod
+    def UpdateTicketStatus(cls, ticketId, statusId):
+        """
+        Update Ticket Status
+        Parameters
+        ----------
+        ticketId : int
+            ID of ticket to change status of
+        statusId : int
+            Status to set
+        Returns
+        -------
+        int : 0 if success | dict with more information on failure
+        """
+        url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/status/" + str(statusId)
+        r = requests.put(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        if(r.status_code == 200):
+            print("Ticket Status Updated successfully.")
+            return 0
+        else:
+            print("Failure in UpdateTicketStatus.")
+            return r.json()
