@@ -21,7 +21,8 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 # Init config
 config = configparser.ConfigParser()
-config.read('config.ini')
+fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
+config.read(fullpath, encoding='utf-8')
 try:
     client_id = config['VSA']['client_id']
     client_secret = config['VSA']['client_secret']
@@ -72,7 +73,7 @@ def doInitialAuth(code):
     print(str(r.status_code))
     config['Auth'] = r.json()
     config['Auth']['refreshed_at'] = datetime.datetime.now().strftime("%Y%m%d%H%M")
-    with open('config.ini', 'w') as configfile:
+    with open(fullpath, 'w') as configfile:
         config.write(configfile)
     VSA.Auth.doRefresh(refreshtoken)
 
@@ -127,7 +128,6 @@ if __name__ == "__main__":
             msg = email.message_from_bytes(data[0][1])
 
         typ, data = connection.store(num, '+FLAGS', '\\Seen')
-        print(msg._payload)
         pattern = r'https://.*\/\?code(=[\w\d]{34})'
         pattern1 = r'https://.*\/\?code(=[\w\d]{32})'
         try:
