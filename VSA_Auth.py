@@ -36,7 +36,6 @@ try:
     smtp_emailto = config['Email']['smtp_emailto']
     smtp_server = config['Email']['smtp_server']
     smtp_port = int(config['Email']['smtp_port'])
-    alerts_email = config['Email']['alerts_email']
     imap_username = config['Email']['imap_username']
     imap_password = config['Email']['imap_password']
     imap_email = config['Email']['imap_email']
