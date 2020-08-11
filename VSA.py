@@ -125,7 +125,7 @@ class AgentProcedures:
 class Agents:
     """http://help.kaseya.com/webhelp/EN/restapi/9050000/#31621.htm"""
     @classmethod
-    def Find(cls, params):
+    def Find(cls, params=None):
         """
         Find an agentId using a number of parameters
 
@@ -241,7 +241,7 @@ class ServiceDesk:
             return r.json()
 
     @classmethod
-    def GetDesks(cls, params):
+    def GetDesks(cls, params=None):
         """
         Get all Service Desks
         Parameters
@@ -267,7 +267,7 @@ class ServiceDesk:
             return r.json()
 
     @classmethod
-    def GetTicketCategories(cls, serviceDeskId, params):
+    def GetTicketCategories(cls, serviceDeskId, params=None):
         """
         Get Ticket Categories based on Service Desk ID
         Parameters
@@ -295,7 +295,7 @@ class ServiceDesk:
             return r.json()
 
     @classmethod
-    def GetCustomFields(cls, serviceDeskId, params):
+    def GetCustomFields(cls, serviceDeskId, params=None):
         """
         Get Custom Fields based on Service Desk ID
         Parameters
@@ -323,7 +323,7 @@ class ServiceDesk:
             return r.json()
 
     @classmethod
-    def GetPriorities(cls, serviceDeskId, params):
+    def GetPriorities(cls, serviceDeskId, params=None):
         """
         Get Service Desk Priorities based on Service Desk ID
         Parameters
@@ -351,7 +351,7 @@ class ServiceDesk:
             return r.json()
 
     @classmethod
-    def GetTicketStatuses(cls, serviceDeskId, params):
+    def GetTicketStatuses(cls, serviceDeskId, params=None):
         """
         Get Ticket Statuses based on Service Desk ID
         Parameters
@@ -379,7 +379,7 @@ class ServiceDesk:
             return r.json()
 
     @classmethod
-    def GetTicket(cls, ticketId, params):
+    def GetTicket(cls, ticketId, params=None):
         """
         Get Ticket info based on Ticket ID
         Parameters
@@ -460,7 +460,7 @@ class ServiceDesk:
             return r.json()
 
     @classmethod
-    def GetTicketNotes(cls, ticketId, params):
+    def GetTicketNotes(cls, ticketId, params=None):
         """
         Get Ticket notes based on Ticket ID
         Parameters
