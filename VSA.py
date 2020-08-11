@@ -1,11 +1,14 @@
-import VSA_Auth
 import requests
 import datetime
 import configparser
+from os import getcwd
 
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+# For use as submodule. Will likely need a change/detection for pip deployment.
+fullpath = getcwd() + "\\PythonVSA\\config.ini"
+config.read(fullpath, encoding='utf-8')
+
 vsa_uri = config['VSA']['vsa_uri']
 api_uri = vsa_uri + "/api/v1.0/"
 redirect_uri = config['Listener']['redirect_uri']
@@ -86,7 +89,6 @@ class AgentProcedures:
         r = requests.get(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
-        print(r.text)
         return r.json()
 
     @classmethod
