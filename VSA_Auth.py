@@ -148,5 +148,4 @@ if __name__ == "__main__":
             doInitialAuth(code)
         else:
             print("Didn't find URL. Deleting.")
-            continue
     print("All done.")

@@ -29,8 +29,9 @@ class Auth:
                         "client_id": client_id,
                         "client_secret": client_secret})
         if(r.status_code == 400):
-            # Email error here. 
             print("Please delete the [Auth] section of config.ini and reauthenticate with kaseya.")
+            # TODO: If refresh_token = line missing just add Auth section with blank refresh_token = 
+            # TODO: If reauth needed just delete the section/ignore it and send a new email. Is there a bettter way of handling this?
             print(r.text)
             exit()
         else:
@@ -125,7 +126,7 @@ class AgentProcedures:
 class Agents:
     """http://help.kaseya.com/webhelp/EN/restapi/9050000/#31621.htm"""
     @classmethod
-    def Find(cls, params=None):
+    def Find(cls, params):
         """
         Find an agentId using a number of parameters
 
@@ -136,21 +137,19 @@ class Agents:
         
         Returns
         -------
-        int : The Agent ID of the first result Kaseya returns
+        list : Found agent(s)
         """
+
         url = api_uri + "/assetmgmt/agents?" + params
         r = requests.get(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         print(r.text)
         if(r.status_code == 200):
-            print("Find Successful.")
             data = r.json()['Result']
-            data = data[0]['AgentId']
-            return int(data)
+            return data
         else:
             print("Error in VSA.Agents.Find.")
-            print(r.text())
             return r.json()
 
     @classmethod
