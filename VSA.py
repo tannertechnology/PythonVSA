@@ -144,7 +144,6 @@ class Agents:
         r = requests.get(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
-        print(r.text)
         if(r.status_code == 200):
             data = r.json()['Result']
             return data
@@ -206,6 +205,58 @@ class Agents:
             print("Error in CloseAlarm.")
             print(r.text)
             return(r.json())
+
+    @classmethod
+    def GetCustomFields(cls, agentId):
+        """
+        Get all custom fields for an agent
+
+        Parameters
+        ----------
+        agentId : int
+            Agent ID to query for custom fields
+        
+        Returns
+        -------
+        dict : Dictionary of custom fields and their values
+        """
+        url = f"{api_uri}assetmgmt/assets/{str(agentId)}/customfields"
+        r = requests.get(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken(),
+                         "Content-Type": "application/json"})
+        print(str(r.status_code))
+        if(r.status_code == 200):
+            print("GetCustomFields Done")
+            return r.json()
+        elif(r.status_code == 400):
+            print("Error in GetCustomFields")
+            return 400
+
+    @classmethod
+    def AddCustomField(cls, FieldName, FieldType):
+        """
+        Create a new custom field
+
+        Parameters
+        ----------
+        FieldName : string
+            Name of field to create
+        FieldType : string
+            Type of field, options are: string, number, date time, date, time
+        """
+        from json import dumps
+        url = f"{api_uri}assetmgmt/assets/customfields"
+        data = {"FieldName": FieldName, "FieldType": FieldType}
+
+        r = requests.post(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken()}, 
+                         data=data)
+        print(r.text)
+        if(r.status_code == 200):
+            return 200
+        else:
+            return r.text
+        
 
 class ServiceDesk:
     """
