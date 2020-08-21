@@ -177,7 +177,7 @@ class Agents:
         if(r.status_code == 200):
             print("GetAllAlarms Done")
             return r.json()
-    
+
     @classmethod
     def CloseAlarm(cls, alarmId, reason="PythonVSA"):
         """
@@ -189,7 +189,7 @@ class Agents:
             Alarm ID
         reason : string
             Reason you are closing the alarm
-        
+
         Returns
         -------
         int : 0 on success | Dictionary with more information on failure
@@ -215,7 +215,7 @@ class Agents:
         ----------
         agentId : int
             Agent ID to query for custom fields
-        
+
         Returns
         -------
         dict : Dictionary of custom fields and their values
@@ -228,9 +228,13 @@ class Agents:
         if(r.status_code == 200):
             print("GetCustomFields Done")
             return r.json()
-        elif(r.status_code == 400):
+        else:
             print("Error in GetCustomFields")
-            return 400
+            error = r.json()["Error"]
+            if(error == "No custom field exist for specified agent."):
+                return 1
+            else:
+                return error
 
     @classmethod
     def AddCustomField(cls, FieldName, FieldType):
@@ -249,14 +253,37 @@ class Agents:
         data = {"FieldName": FieldName, "FieldType": FieldType}
 
         r = requests.post(url=url, headers={
-                         "Authorization": "Bearer " + Auth.GetToken()}, 
+                         "Authorization": "Bearer " + Auth.GetToken()},
                          data=data)
-        print(r.text)
         if(r.status_code == 200):
             return 200
         else:
             return r.text
-        
+
+    @classmethod
+    def UpdateCustomField(cls, agentId, FieldName, FieldValue):
+        """
+        Update an existing custom field
+
+        Parameters
+        ----------
+        agentId : int
+            GUID of Kaseya agent to update custom field value of
+        FieldName : string
+            Name of field to update
+        FieldValue : string
+            Value to insert in chosen field
+        """
+        url = f"{api_uri}assetmgmt/assets/{agentId}/customfields/{FieldName}"
+        data = {"FieldValue": FieldValue}
+        r = requests.put(url=url, headers={
+                         "Authorization": "Bearer " + Auth.GetToken()},
+                         data=data)
+        if(r.status_code == 200):
+            return 200
+        else:
+            return r.text
+
 
 class ServiceDesk:
     """
