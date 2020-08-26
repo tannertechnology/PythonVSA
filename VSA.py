@@ -93,7 +93,7 @@ class AgentProcedures:
         return r.json()
 
     @classmethod
-    def RunNow(cls, agentId, procedureId, params=None):
+    def RunNow(cls, agentId, procedureId):
         """
         Run an Agent Procedure ASAP
 
@@ -112,15 +112,14 @@ class AgentProcedures:
         """
         url = api_uri + "automation/agentprocs/" + str(agentId) + "/" + str(procedureId) + "/runnow"
         r = requests.put(url=url, headers={
-                         "Authorization": "Bearer " + Auth.GetToken(),
-                         "Content-Type": "application/json"})
+                         "Authorization": "Bearer " + Auth.GetToken()})
         print(r.text)
         if(r.status_code == 204):
             print("VSA.AgentProcedures.RunNow Successful.")
             return 0
         else:
             print("VSA.AgentProcedures.RunNow failed.")
-            return r.json()
+            return r.text
         
 
 class Agents:
