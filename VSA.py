@@ -219,13 +219,14 @@ class Agents:
         -------
         dict : Dictionary of custom fields and their values
         """
+        if(agentId is None):
+            print("An Agent ID is required. We got None.")
+            return
         url = f"{api_uri}assetmgmt/assets/{str(agentId)}/customfields"
         r = requests.get(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
-        print(str(r.status_code))
         if(r.status_code == 200):
-            print("GetCustomFields Done")
             return r.json()
         else:
             print("Error in GetCustomFields")
