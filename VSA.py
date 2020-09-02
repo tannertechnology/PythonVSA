@@ -60,9 +60,6 @@ class Auth:
         if(refreshdelta >= 20):
             print("Refreshing token.")
             access_token = Auth.doRefresh(refresh_token)
-        else:
-            print("No need to refresh.")
-
         return access_token
 
 
@@ -659,7 +656,3 @@ class ServiceDesk:
             raise exceptions.ItemNotFound(r)
         else:
             raise exceptions.VSAError(r.text)
-
-#result = ServiceDesk.GetTicketStatuses(10141321280059569694487366)
-#result = ServiceDesk.UpdateTicketStatus(10141321280059569694487366, 37299034390048228201331966)
-#print(result)
