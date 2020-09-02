@@ -3,6 +3,8 @@ import datetime
 import configparser
 from os import getcwd
 
+from . import exceptions
+
 
 config = configparser.ConfigParser()
 # For use as submodule. Will likely need a change/detection for pip deployment.
@@ -64,7 +66,6 @@ class Auth:
         return access_token
 
 
-
 class AgentProcedures:
     """http://help-origin.kaseya.com/webhelp/EN/RESTAPI/9040000/#31639.htm"""
     @classmethod
@@ -90,7 +91,12 @@ class AgentProcedures:
         r = requests.get(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
-        return r.json()
+        if(r.status_code == 200):
+            return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
+        else:
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def RunNow(cls, agentId, procedureId):
@@ -108,19 +114,18 @@ class AgentProcedures:
 
         Returns
         -------
-        int : 0 on success | Dictionary with more information on failure
+        int : 0 on success
         """
         url = api_uri + "automation/agentprocs/" + str(agentId) + "/" + str(procedureId) + "/runnow"
         r = requests.put(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken()})
-        print(r.text)
         if(r.status_code == 204):
-            print("VSA.AgentProcedures.RunNow Successful.")
             return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("VSA.AgentProcedures.RunNow failed.")
-            return r.text
-        
+            raise exceptions.VSAError(r.text)
+
 
 class Agents:
     """http://help.kaseya.com/webhelp/EN/restapi/9050000/#31621.htm"""
@@ -133,7 +138,7 @@ class Agents:
         ----------
         params : string
             Properly formatted string of filters/expressions (see README)
-        
+
         Returns
         -------
         list : Found agent(s)
@@ -146,9 +151,10 @@ class Agents:
         if(r.status_code == 200):
             data = r.json()['Result']
             return data
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Error in VSA.Agents.Find.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetAllAlarms(cls, returnAll="true", params=None):
@@ -174,8 +180,11 @@ class Agents:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("GetAllAlarms Done")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
+        else:
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def CloseAlarm(cls, alarmId, reason="PythonVSA"):
@@ -191,7 +200,7 @@ class Agents:
 
         Returns
         -------
-        int : 0 on success | Dictionary with more information on failure
+        int : 0 on success
         """
         url = api_uri + "assetmgmt/alarms/" + str(alarmId) + "/close"
         r = requests.put(url=url, headers={
@@ -200,10 +209,10 @@ class Agents:
                                                                      "value": reason}])
         if(r.status_code == 200):
             return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Error in CloseAlarm.")
-            print(r.text)
-            return(r.json())
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetCustomFields(cls, agentId):
@@ -219,22 +228,20 @@ class Agents:
         -------
         dict : Dictionary of custom fields and their values
         """
-        if(agentId is None):
-            print("An Agent ID is required. We got None.")
-            return
         url = f"{api_uri}assetmgmt/assets/{str(agentId)}/customfields"
         r = requests.get(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Error in GetCustomFields")
             error = r.json()["Error"]
-            if(error == "No custom field exist for specified agent."):
-                return 1
+            if(error == "No custom fields exist for specified agent."):
+                raise exceptions.ItemNotFound(r)
             else:
-                return error
+                raise exceptions.VSAError(r.text)
 
     @classmethod
     def AddCustomField(cls, FieldName, FieldType):
@@ -247,6 +254,9 @@ class Agents:
             Name of field to create
         FieldType : string
             Type of field, options are: string, number, date time, date, time
+        Returns
+        -------
+        int : 0 if success
         """
         from json import dumps
         url = f"{api_uri}assetmgmt/assets/customfields"
@@ -256,9 +266,11 @@ class Agents:
                          "Authorization": "Bearer " + Auth.GetToken()},
                          data=data)
         if(r.status_code == 200):
-            return 200
+            return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            return r.text
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def UpdateCustomField(cls, agentId, FieldName, FieldValue):
@@ -273,6 +285,9 @@ class Agents:
             Name of field to update
         FieldValue : string
             Value to insert in chosen field
+        Returns
+        -------
+        int : 0 if success
         """
         url = f"{api_uri}assetmgmt/assets/{agentId}/customfields/{FieldName}"
         data = {"FieldValue": FieldValue}
@@ -280,9 +295,11 @@ class Agents:
                          "Authorization": "Bearer " + Auth.GetToken()},
                          data=data)
         if(r.status_code == 200):
-            return 200
+            return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            return r.text
+            raise exceptions.VSAError(r.text)
 
 
 class ServiceDesk:
@@ -311,11 +328,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Tickets retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetTickets.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetDesks(cls, params=None):
@@ -337,11 +354,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Service Desks retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetDesks.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetTicketCategories(cls, serviceDeskId, params=None):
@@ -365,11 +382,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Ticket categories retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetTicketCategories.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetCustomFields(cls, serviceDeskId, params=None):
@@ -393,11 +410,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Custom Fields retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetCustomFields.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetPriorities(cls, serviceDeskId, params=None):
@@ -421,11 +438,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Service Desk Priorities retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetPriorities.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetTicketStatuses(cls, serviceDeskId, params=None):
@@ -449,11 +466,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Ticket Statuses retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetTicketStatuses.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetTicket(cls, ticketId, params=None):
@@ -477,11 +494,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Ticket retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetTicket.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetTicketCustomField(cls, ticketId, customFieldId):
@@ -502,11 +519,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Custom Field Value retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetTicketCustomField.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def UpdateCustomField(cls, ticketId, customFieldId, data):
@@ -522,7 +539,7 @@ class ServiceDesk:
             String encapsulated in escaped double quotes to fill custom field
         Returns
         -------
-        int : 0 if success | dict with more information on failure
+        int : 0 if success
         """
         url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/customfields/" + str(customFieldId)
         r = requests.put(url=url, headers={
@@ -532,9 +549,10 @@ class ServiceDesk:
         if(r.status_code == 200):
             print("Custom Field Updated.")
             return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in UpdateCustomField.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def GetTicketNotes(cls, ticketId, params=None):
@@ -548,7 +566,7 @@ class ServiceDesk:
             Properly formatted string of filters/expressions (see README)
         Returns
         -------
-        dict : Ticket Notes
+        list : Ticket Notes
         """
         if(params is None):
             url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/notes"
@@ -560,9 +578,10 @@ class ServiceDesk:
         if(r.status_code == 200):
             print("Ticket Notes retrieved sucessfully.")
             return r.json()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in GetTicketNotes.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def AddTicketNote(cls, ticketId, note, hidden="true", systemflag="true"):
@@ -576,7 +595,7 @@ class ServiceDesk:
             Note to add to ticket
         Returns
         -------
-        int : 0 if success | dict with more information on failure
+        int : 0 if success
         """
         url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/notes"
         data = {"Hidden": hidden,
@@ -586,11 +605,11 @@ class ServiceDesk:
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"}, data=data)
         if(r.status_code == 200):
-            print("Ticket Note Added successfully.")
             return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in AddTicketNote.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def UpdateTicketPriority(cls, ticketId, priorityId):
@@ -604,18 +623,18 @@ class ServiceDesk:
             Priority to set
         Returns
         -------
-        int : 0 if success | dict with more information on failure
+        int : 0 if success
         """
         url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/priority/" + str(priorityId)
         r = requests.put(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken(),
                          "Content-Type": "application/json"})
         if(r.status_code == 200):
-            print("Ticket Priority Updated successfully.")
             return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in UpdateTicketPriority.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
 
     @classmethod
     def UpdateTicketStatus(cls, ticketId, statusId):
@@ -629,15 +648,18 @@ class ServiceDesk:
             Status to set
         Returns
         -------
-        int : 0 if success | dict with more information on failure
+        int : 0 if success
         """
         url = api_uri + "automation/servicedesktickets/" + str(ticketId) + "/status/" + str(statusId)
         r = requests.put(url=url, headers={
-                         "Authorization": "Bearer " + Auth.GetToken(),
-                         "Content-Type": "application/json"})
+                         "Authorization": "Bearer " + Auth.GetToken()})
         if(r.status_code == 200):
-            print("Ticket Status Updated successfully.")
             return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
         else:
-            print("Failure in UpdateTicketStatus.")
-            return r.json()
+            raise exceptions.VSAError(r.text)
+
+#result = ServiceDesk.GetTicketStatuses(10141321280059569694487366)
+#result = ServiceDesk.UpdateTicketStatus(10141321280059569694487366, 37299034390048228201331966)
+#print(result)
