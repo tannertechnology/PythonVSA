@@ -11,7 +11,7 @@ from time import sleep
 import re
 from imaplib import IMAP4_SSL
 import email
-from PythonVSA.VSA import Auth
+from . import Auth
 
 
 
