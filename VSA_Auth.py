@@ -11,49 +11,20 @@ from time import sleep
 import re
 from imaplib import IMAP4_SSL
 import email
-import VSA
+from PythonVSA.VSA import Auth
 
 
-#Dev var
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-logging.getLogger().setLevel(logging.DEBUG)
 
 
-# Init config
-config = configparser.ConfigParser()
-fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
-config.read(fullpath, encoding='utf-8')
-try:
+def doInitialAuth(code, config):
+    vsa_uri = config['VSA']['vsa_uri']
     client_id = config['VSA']['client_id']
     client_secret = config['VSA']['client_secret']
-    vsa_uri = config['VSA']['vsa_uri']
-
+    authendpoint = vsa_uri + "/api/v1.0/authorize"
     redirect_uri = config['Listener']['redirect_uri']
-    listen_port = config['Listener']['listen_port']
+    fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
+    
 
-    smtp_username = config['Email']['smtp_username']
-    smtp_password = config['Email']['smtp_password']
-    smtp_emailfrom = config['Email']['smtp_emailfrom']
-    smtp_emailto = config['Email']['smtp_emailto']
-    smtp_server = config['Email']['smtp_server']
-    smtp_port = int(config['Email']['smtp_port'])
-    imap_username = config['Email']['imap_username']
-    imap_password = config['Email']['imap_password']
-    imap_email = config['Email']['imap_email']
-    imap_server = config['Email']['imap_server']
-    imap_port = int(config['Email']['imap_port'])
-    imap_refresh_interval = int(config['Email']['imap_refresh_interval'])
-
-except(KeyError):
-    print("A required variable is missing. RIPERONI. ")
-    exit()
-
-authendpoint = vsa_uri + "/api/v1.0/authorize"
-
-urlforuser = vsa_uri + "/vsapres/web20/core/login.aspx?response_type=code&redirect_uri=" + redirect_uri + "&client_id=" + client_id
-
-
-def doInitialAuth(code):
     r = requests.post(authendpoint, json={
         "grant_type": "authorization_code",
         "code": code,
@@ -75,10 +46,47 @@ def doInitialAuth(code):
     config['Auth']['refreshed_at'] = datetime.datetime.now().strftime("%Y%m%d%H%M")
     with open(fullpath, 'w') as configfile:
         config.write(configfile)
-    VSA.Auth.doRefresh(refreshtoken)
+    Auth.doRefresh(refreshtoken)
 
 
-if __name__ == "__main__":
+def startauth():
+    #Dev var
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+    logging.getLogger().setLevel(logging.DEBUG)
+
+
+    # Init config
+    config = configparser.ConfigParser()
+    fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
+    config.read(fullpath, encoding='utf-8')
+    try:
+        client_id = config['VSA']['client_id']
+        client_secret = config['VSA']['client_secret']
+        vsa_uri = config['VSA']['vsa_uri']
+
+        redirect_uri = config['Listener']['redirect_uri']
+        listen_port = config['Listener']['listen_port']
+
+        smtp_username = config['Email']['smtp_username']
+        smtp_password = config['Email']['smtp_password']
+        smtp_emailfrom = config['Email']['smtp_emailfrom']
+        smtp_emailto = config['Email']['smtp_emailto']
+        smtp_server = config['Email']['smtp_server']
+        smtp_port = int(config['Email']['smtp_port'])
+        imap_username = config['Email']['imap_username']
+        imap_password = config['Email']['imap_password']
+        imap_email = config['Email']['imap_email']
+        imap_server = config['Email']['imap_server']
+        imap_port = int(config['Email']['imap_port'])
+        imap_refresh_interval = int(config['Email']['imap_refresh_interval'])
+
+    except(KeyError):
+        print("A required variable is missing. RIPERONI. ")
+        exit()
+
+    
+
+    urlforuser = vsa_uri + "/vsapres/web20/core/login.aspx?response_type=code&redirect_uri=" + redirect_uri + "&client_id=" + client_id
     print("Attempting initial auth")
     print("Please visit this link and copy the entire resulting URL.")
     print(urlforuser)
@@ -141,11 +149,14 @@ if __name__ == "__main__":
             code = code.replace("=3D", "")
             connection.close()
             connection.logout()
-            doInitialAuth(code)
+            doInitialAuth(code, config)
         elif(matchraw):
             connection.close()
             connection.logout()
-            doInitialAuth(code)
+            doInitialAuth(code, config)
         else:
             print("Didn't find URL. Deleting.")
     print("All done.")
+
+if __name__ == "__main__":
+    startauth()

@@ -54,7 +54,7 @@ class Auth:
             access_token = config['Auth']['access_token']
         except(KeyError):
             print("You haven't properly initialized this library.")
-            print("Please run VSA_API.py or Auth.py to perform initial setup.")
+            print("Please run VSA_Auth.py to perform initial setup.")
             exit()
         refreshdelta = int(datetime.datetime.now().strftime("%Y%m%d%H%M")) - int(refreshed_at)
         if(refreshdelta >= 20):
