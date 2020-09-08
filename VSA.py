@@ -234,11 +234,15 @@ class Agents:
         elif(r.status_code == 404):
             raise exceptions.ItemNotFound(r)
         else:
-            error = r.json()["Error"]
-            if(error == "No custom fields exist for specified agent."):
-                raise exceptions.ItemNotFound(r)
-            else:
+            try:
+                error = r.json()["Error"]
+                if(error == "No custom fields exist for specified agent."):
+                    raise exceptions.ItemNotFound(r)
+                else:
+                    raise exceptions.VSAError(r.text)
+            except(KeyError):
                 raise exceptions.VSAError(r.text)
+
 
     @classmethod
     def AddCustomField(cls, FieldName, FieldType):
