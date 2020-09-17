@@ -9,20 +9,6 @@ class VSAError(Exception):
             print(f"{args[0]}")
         print("------------------ End details ------------------")
 
-# TODO: Remove these if we can't use them anywhere
-#class AgentNotFound(VSAError):
-#    """The specified agent could not be found in Kaseya"""
-#    def __init__(self, AgentID, RequestObject):
-#        print(f"The AgentId {AgentID} was not found in VSA. Please check the ID.")
-#        print(f"We tried to contact this url: {print('Requested URL goes here.')}")
-
-
-#class TicketNotFound(VSAError):
-#    """We were unable to find the requested ticket."""
-#    def __init__(self, TicketID, RequestObject):
-#        print(f"The Ticket with ID/Reference {TicketID} was not found in VSA. Please check the ID/Reference.")
-#        print(f"We tried to contact this url: {print('Requested URL goes here.')}")
-
 
 class ItemNotFound(VSAError):
     """We were either unable to find the requested ticket or status."""
