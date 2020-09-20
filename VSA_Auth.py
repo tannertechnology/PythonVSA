@@ -81,8 +81,8 @@ def startauth():
         imap_refresh_interval = int(config['Email']['imap_refresh_interval'])
 
     except(KeyError):
-        print("A required variable is missing. RIPERONI. ")
-        exit()
+        print("A required variable is missing from the configuration. Please check config.ini. ")
+        pass
 
     
 
