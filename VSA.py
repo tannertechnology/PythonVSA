@@ -665,37 +665,35 @@ class ServiceDesk:
             raise exceptions.VSAError(r.text)
 
 
-@classmethod
-    def RunNowPrompt(cls, agentId, procedureId,procPrompts):
-        """
-        Run an Agent Procedure ASAP with Parameters Prompts
-        http://help.kaseya.com/webhelp/EN/restapi/9050000/#31668.htm
-        https://<server>/api/v1.0/swagger/ui/index#!/AgentProcedure/AgentProcedure_RunNowAgentProc
-        Parameters
-        ----------
-        agentId : int
-            ID of agent to execute procedure on
-        procedureId : int
-            ID of agent procedure to execute
-        procPrompts : dict
-            ID of agent procedure to execute
-        Returns
-        -------
-        int : 0 on success
-        """
-        url = api_uri + "automation/agentprocs/" + str(agentId) + "/" + str(procedureId) + "/runnow"
-        r = requests.put(url=url,
-                        headers={
-                            "Accept": "*/*",
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer " + Auth.GetToken()},
-                        data=json.dumps(procPrompts)
-                        )
-        # print(r.request.headers)
-        # print(r.request.body)
-        if(r.status_code == 204):
-            return 0
-        elif(r.status_code == 404):
-            raise exceptions.ItemNotFound(r)
-        else:
-            raise exceptions.VSAError(r.text)
+#@classmethod
+    #def RunNowPrompt(cls, agentId, procedureId, procPrompts):
+    #    """
+    #    Run an Agent Procedure ASAP with Parameters Prompts
+    #    http://help.kaseya.com/webhelp/EN/restapi/9050000/#31668.htm
+    #    https://<server>/api/v1.0/swagger/ui/index#!/AgentProcedure/AgentProcedure_RunNowAgentProc
+    #    Parameters
+    #    ----------
+    #    agentId : int
+    #        ID of agent to execute procedure on
+    #    procedureId : int
+    #        ID of agent procedure to execute
+    #    procPrompts : dict
+    #        ID of agent procedure to execute
+    #    Returns
+    #    -------
+    #    int : 0 on success
+    #    """
+    #    url = api_uri + "automation/agentprocs/" + str(agentId) + "/" + str(procedureId) + "/runnow"
+    #    r = requests.put(url=url,
+    #                     headers={
+    #                         "Accept": "*/*",
+    #                         "Content-Type": "application/json",
+    #                         "Authorization": "Bearer " + Auth.GetToken()},
+    #                     data=json.dumps(procPrompts)
+    #                     )
+    #    if(r.status_code == 204):
+    #        return 0
+    #    elif(r.status_code == 404):
+    #        raise exceptions.ItemNotFound(r)
+    #    else:
+    #        raise exceptions.VSAError(r.text)
