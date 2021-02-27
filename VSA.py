@@ -47,6 +47,8 @@ class Auth:
 
     @classmethod
     def GetToken(cls):
+        """Allows access to the authentication token, refreshing when required."""
+        # TODO: What is the best way of securely storing this token cross platform?
         config.read('config.ini')
         try:
             refresh_token = config['Auth']['refresh_token']
@@ -504,13 +506,13 @@ class ServiceDesk:
     @classmethod
     def GetTicketCustomField(cls, ticketId, customFieldId):
         """
-        Get Custom Field value
+        Get Custom Field value from Ticket
         Parameters
         ----------
         ticketId : int
-            ID of ticket to retrieve
+            Ticket to search for custom field
         customFieldId : int
-            ID of custom field to get value of
+            Custom Field ID
         Returns
         -------
         dict : Custom Field Value
@@ -529,15 +531,16 @@ class ServiceDesk:
     @classmethod
     def UpdateCustomField(cls, ticketId, customFieldId, data):
         """
-        Update Custom Field value
+        Update Custom Field value on ticket
         Parameters
         ----------
         ticketId : int
-            ID of ticket to retrieve
+            Ticket to search for custom field
         customFieldId : int
             ID of custom field to update
-        data : string 
+        data : string
             String encapsulated in escaped double quotes to fill custom field
+            Example: data = '\"Hello World!\"'
         Returns
         -------
         int : 0 if success
@@ -655,6 +658,42 @@ class ServiceDesk:
         r = requests.put(url=url, headers={
                          "Authorization": "Bearer " + Auth.GetToken()})
         if(r.status_code == 200):
+            return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
+        else:
+            raise exceptions.VSAError(r.text)
+
+
+@classmethod
+    def RunNowPrompt(cls, agentId, procedureId,procPrompts):
+        """
+        Run an Agent Procedure ASAP with Parameters Prompts
+        http://help.kaseya.com/webhelp/EN/restapi/9050000/#31668.htm
+        https://<server>/api/v1.0/swagger/ui/index#!/AgentProcedure/AgentProcedure_RunNowAgentProc
+        Parameters
+        ----------
+        agentId : int
+            ID of agent to execute procedure on
+        procedureId : int
+            ID of agent procedure to execute
+        procPrompts : dict
+            ID of agent procedure to execute
+        Returns
+        -------
+        int : 0 on success
+        """
+        url = api_uri + "automation/agentprocs/" + str(agentId) + "/" + str(procedureId) + "/runnow"
+        r = requests.put(url=url,
+                        headers={
+                            "Accept": "*/*",
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + Auth.GetToken()},
+                        data=json.dumps(procPrompts)
+                        )
+        # print(r.request.headers)
+        # print(r.request.body)
+        if(r.status_code == 204):
             return 0
         elif(r.status_code == 404):
             raise exceptions.ItemNotFound(r)
