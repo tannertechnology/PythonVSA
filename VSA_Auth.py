@@ -11,9 +11,11 @@ from time import sleep
 import re
 from imaplib import IMAP4_SSL
 import email
-from . import Auth
 
-
+try:
+    from . import Auth
+except(ImportError):
+    from VSA import Auth
 
 
 def doInitialAuth(code, config):
@@ -22,8 +24,10 @@ def doInitialAuth(code, config):
     client_secret = config['VSA']['client_secret']
     authendpoint = vsa_uri + "/api/v1.0/authorize"
     redirect_uri = config['Listener']['redirect_uri']
-    fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
     
+    fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
+    if(not os.path.exists(fullpath)):
+        fullpath = 'config.ini'
 
     r = requests.post(authendpoint, json={
         "grant_type": "authorization_code",
@@ -58,14 +62,20 @@ def startauth():
     # Init config
     config = configparser.ConfigParser()
     fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
-    config.read(fullpath, encoding='utf-8')
+    readfiles = config.read(fullpath, encoding='utf-8')
+    if(not readfiles):
+        readfiles = config.read('config.ini', encoding='utf-8')
+        if(not readfiles):
+            print("We weren't able to read config.ini.")
+            exit()
+    
     try:
         client_id = config['VSA']['client_id']
         client_secret = config['VSA']['client_secret']
         vsa_uri = config['VSA']['vsa_uri']
 
         redirect_uri = config['Listener']['redirect_uri']
-        listen_port = config['Listener']['listen_port']
+        #listen_port = config['Listener']['listen_port']
 
         smtp_username = config['Email']['smtp_username']
         smtp_password = config['Email']['smtp_password']
@@ -135,7 +145,12 @@ def startauth():
         except(IndexError):
             msg = email.message_from_bytes(data[0][1])
 
+        # Mark as read and delete email
         typ, data = connection.store(num, '+FLAGS', '\\Seen')
+        connection.store(num, "+FLAGS", "\\Deleted")
+        connection.expunge()
+
+        # Parse response
         pattern = r'https://.*\/\?code(=[\w\d]{34})'
         pattern1 = r'https://.*\/\?code(=[\w\d]{32})'
         try:

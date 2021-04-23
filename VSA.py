@@ -1,22 +1,35 @@
 import requests
 import datetime
 import configparser
-from os import getcwd
+from os import getcwd, path
 
-from . import exceptions
+try:
+    from . import exceptions
+except(ImportError):
+    import exceptions
+
 
 
 config = configparser.ConfigParser()
 # For use as submodule. Will likely need a change/detection for pip deployment.
+
 fullpath = getcwd() + "\\PythonVSA\\config.ini"
-config.read(fullpath, encoding='utf-8')
-
-vsa_uri = config['VSA']['vsa_uri']
-api_uri = vsa_uri + "/api/v1.0/"
-redirect_uri = config['Listener']['redirect_uri']
-client_id = config['VSA']['client_id']
-client_secret = config['VSA']['client_secret']
-
+readfiles = config.read(fullpath, encoding='utf-8')
+if(not readfiles):
+    readfiles = config.read('config.ini', encoding='utf-8')
+    if(not readfiles):
+        print("We weren't able to read config.ini.")
+        exit()
+try:
+    vsa_uri = config['VSA']['vsa_uri']
+    api_uri = vsa_uri + "/api/v1.0/"
+    redirect_uri = config['Listener']['redirect_uri']
+    client_id = config['VSA']['client_id']
+    client_secret = config['VSA']['client_secret']
+except(KeyError):
+    print("You haven't properly initialized this library.")
+    print("Please ensure you have copied sample_config.ini to config.ini and filled in all the required options.")
+    exit()
 
 class Auth:
     @classmethod
