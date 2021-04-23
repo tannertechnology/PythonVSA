@@ -2,6 +2,7 @@ import requests
 import datetime
 import configparser
 from os import getcwd, path
+from platform import system
 
 try:
     from . import exceptions
@@ -13,7 +14,11 @@ except(ImportError):
 config = configparser.ConfigParser()
 # For use as submodule. Will likely need a change/detection for pip deployment.
 
-fullpath = getcwd() + "\\PythonVSA\\config.ini"
+
+if(system() == "Windows"):
+    fullpath = getcwd() + "\\PythonVSA\\config.ini"
+else:
+    fullpath = getcwd() + "/PythonVSA/config.ini"
 readfiles = config.read(fullpath, encoding='utf-8')
 if(not readfiles):
     readfiles = config.read('config.ini', encoding='utf-8')
