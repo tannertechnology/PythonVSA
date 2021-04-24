@@ -11,6 +11,7 @@ from time import sleep
 import re
 from imaplib import IMAP4_SSL
 import email
+from platform import system
 
 try:
     from . import Auth
@@ -25,8 +26,12 @@ def doInitialAuth(code, config):
     authendpoint = vsa_uri + "/api/v1.0/authorize"
     redirect_uri = config['Listener']['redirect_uri']
     
-    fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
+    if(system() == "Windows"):
+        fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
+    else:
+        fullpath = os.getcwd() + "/PythonVSA/config.ini"
     if(not os.path.exists(fullpath)):
+        print("Defaulting to config.ini in current directory.")
         fullpath = 'config.ini'
 
     r = requests.post(authendpoint, json={
@@ -61,9 +66,14 @@ def startauth():
 
     # Init config
     config = configparser.ConfigParser()
-    fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
+
+    if(system() == "Windows"):
+        fullpath = os.getcwd() + "\\PythonVSA\\config.ini"
+    else:
+        fullpath = os.getcwd() + "/PythonVSA/config.ini"
     readfiles = config.read(fullpath, encoding='utf-8')
     if(not readfiles):
+        print("Defaulting to config.ini in current directory.")
         readfiles = config.read('config.ini', encoding='utf-8')
         if(not readfiles):
             print("We weren't able to read config.ini.")
