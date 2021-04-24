@@ -18,3 +18,9 @@ class ItemNotFound(VSAError):
         print(f"We tried to contact this url: {RequestObject.url}")
         print(f"Raw response from Kaseya:\n {RequestObject.text}")
         print("------------------ End ItemNotFound ------------------")
+
+class AuthError(Exception):
+    """The authentication with VSA is broken."""
+    def __init__(self, *args):
+        print("Got error 403 forbidden. The authentication either broke or you aren't authorized to perform the action you are attempting.")
+        exit()

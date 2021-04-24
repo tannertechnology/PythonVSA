@@ -23,6 +23,20 @@ Then PythonVSA would make a request similar to:
 
     GET /automation/agentprocs?$skip=30&$top=10&$orderby=Severity
 
+
+Agent Procedure Prompts Formatting
+
+-----------------
+Agent procedure prompts should be passed as follows:
+
+    procPrompts = {
+        "ScriptPrompts":
+        [{"Name": "Prompt name (variable name)",
+        "Value": "Prompt Response Value"}]
+    }
+
+Replacing the values of Name and Value
+
 Implemented
 
 -------------

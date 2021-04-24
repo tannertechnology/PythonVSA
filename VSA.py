@@ -3,6 +3,7 @@ import datetime
 import configparser
 from os import getcwd, path
 from platform import system
+from json import dumps
 
 try:
     from . import exceptions
@@ -39,7 +40,18 @@ except(KeyError):
 class Auth:
     @classmethod
     def doRefresh(cls, refresh_token=config['Auth']['refresh_token']):
-        config.read('config.ini')
+        if(system() == "Windows"):
+            fullpath = getcwd() + "\\PythonVSA\\config.ini"
+        else:
+            fullpath = getcwd() + "/PythonVSA/config.ini"
+        readfiles = config.read(fullpath, encoding='utf-8')
+        if(not readfiles):
+            fullpath = 'config.ini'
+            readfiles = config.read('config.ini', encoding='utf-8')
+            if(not readfiles):
+                print("We weren't able to read config.ini.")
+                exit()
+        #config.read('config.ini')
         refreshuri = vsa_uri + "/api/v1.0/token"
         print("Refreshing token...")
         r = requests.post(refreshuri, json={
@@ -58,7 +70,13 @@ class Auth:
             config['Auth']['refreshed_at'] = datetime.datetime.now().strftime("%Y%m%d%H%M")
             config['Auth']['refresh_token'] = r.json()['refresh_token']
             config['Auth']['access_token'] = r.json()['access_token']
-            with open('config.ini', 'w') as configfile:
+            if(system() == "Windows"):
+                fullpath = getcwd() + "\\PythonVSA\\config.ini"
+            else:
+                fullpath = getcwd() + "/PythonVSA/config.ini"
+            if(not path.exists(fullpath)):
+                fullpath = 'config.ini'
+            with open(fullpath, 'w') as configfile:
                 config.write(configfile)
             print(r.text)
             return r.json()['access_token']
@@ -138,6 +156,68 @@ class AgentProcedures:
                          "Authorization": "Bearer " + Auth.GetToken()})
         if(r.status_code == 204):
             return 0
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
+        else:
+            raise exceptions.VSAError(r.text)
+
+    @classmethod
+    def GetPrompts(cls, procedureId):
+        """Get Agent Procedure Prompts
+        Parameters
+        ----------
+        procedureId : int
+            Procedure to get prompt options against
+        Returns
+        -------
+        dict: Procedure prompts and information
+        """
+        url = api_uri + "automation/agentprocs/" + str(procedureId) + "/prompts"
+        r = requests.get(url, headers={
+            "Accept": "*/*",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + Auth.GetToken()
+        })
+        if(r.status_code == 200):
+            return r.json()
+        elif(r.status_code == 403):
+            raise exceptions.AuthError()
+        elif(r.status_code == 404):
+            raise exceptions.ItemNotFound(r)
+        else:
+            raise exceptions.VSAError(r.text)
+
+    @classmethod
+    def RunNowPrompt(cls, agentId, procedureId, procPrompts):
+        """
+        Run an Agent Procedure ASAP with Parameters Prompts
+        http://help.kaseya.com/webhelp/EN/restapi/9050000/#31668.htm
+        https://<server>/api/v1.0/swagger/ui/index#!/AgentProcedure/AgentProcedure_RunNowAgentProc
+        Parameters
+        ----------
+        agentId : int
+            ID of agent to execute procedure on
+        procedureId : int
+            ID of agent procedure to execute
+        procPrompts : dict
+            See readme.md procprompts section
+        Returns
+        -------
+        int : 0 on success
+        """
+        # Thanks to @tutume for issue #14
+        url = api_uri + "automation/agentprocs/" + str(agentId) + "/" + str(procedureId) + "/runnow"
+        r = requests.put(url=url,
+                         headers={
+                             "Accept": "*/*",
+                             "Content-Type": "application/json",
+                             "Authorization": "Bearer " + Auth.GetToken()},
+                         data=dumps(procPrompts)
+                         )
+        if(r.status_code == 204):
+            return 0
+        elif(r.status_code == 403):
+            raise exceptions.AuthError()
         elif(r.status_code == 404):
             raise exceptions.ItemNotFound(r)
         else:
@@ -682,36 +762,3 @@ class ServiceDesk:
         else:
             raise exceptions.VSAError(r.text)
 
-
-#@classmethod
-    #def RunNowPrompt(cls, agentId, procedureId, procPrompts):
-    #    """
-    #    Run an Agent Procedure ASAP with Parameters Prompts
-    #    http://help.kaseya.com/webhelp/EN/restapi/9050000/#31668.htm
-    #    https://<server>/api/v1.0/swagger/ui/index#!/AgentProcedure/AgentProcedure_RunNowAgentProc
-    #    Parameters
-    #    ----------
-    #    agentId : int
-    #        ID of agent to execute procedure on
-    #    procedureId : int
-    #        ID of agent procedure to execute
-    #    procPrompts : dict
-    #        ID of agent procedure to execute
-    #    Returns
-    #    -------
-    #    int : 0 on success
-    #    """
-    #    url = api_uri + "automation/agentprocs/" + str(agentId) + "/" + str(procedureId) + "/runnow"
-    #    r = requests.put(url=url,
-    #                     headers={
-    #                         "Accept": "*/*",
-    #                         "Content-Type": "application/json",
-    #                         "Authorization": "Bearer " + Auth.GetToken()},
-    #                     data=json.dumps(procPrompts)
-    #                     )
-    #    if(r.status_code == 204):
-    #        return 0
-    #    elif(r.status_code == 404):
-    #        raise exceptions.ItemNotFound(r)
-    #    else:
-    #        raise exceptions.VSAError(r.text)
