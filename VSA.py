@@ -51,7 +51,6 @@ class Auth:
             if(not readfiles):
                 print("We weren't able to read config.ini.")
                 exit()
-        #config.read('config.ini')
         refreshuri = vsa_uri + "/api/v1.0/token"
         print("Refreshing token...")
         r = requests.post(refreshuri, json={
@@ -85,7 +84,13 @@ class Auth:
     def GetToken(cls):
         """Allows access to the authentication token, refreshing when required."""
         # TODO: What is the best way of securely storing this token cross platform?
-        config.read('config.ini')
+        if(system() == "Windows"):
+            fullpath = getcwd() + "\\PythonVSA\\config.ini"
+        else:
+            fullpath = getcwd() + "/PythonVSA/config.ini"
+        if(not path.exists(fullpath)):
+            fullpath = 'config.ini'
+        config.read(fullpath)
         try:
             refresh_token = config['Auth']['refresh_token']
             refreshed_at = config['Auth']['refreshed_at']
