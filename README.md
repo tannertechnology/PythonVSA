@@ -1,3 +1,5 @@
+Breaking changes inbound to comply with PEP0008, if requested will make backwards compatible.
+
 This is far from complete, give me a bit to finish it. If there are specific API Endpoints you want to access submit an issue and I should be able to implement in a day. 
 
 Until it is complete and packaged for pip this is meant for use as a git submodule/directory inside your project
